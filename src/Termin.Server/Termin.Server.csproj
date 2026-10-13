@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Termin.CalDav\Termin.CalDav.csproj" />
+    <ProjectReference Include="..\Termin.Calendar\Termin.Calendar.csproj" />
+    <ProjectReference Include="..\Termin.Storage\Termin.Storage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <AssemblyName>termin</AssemblyName>
+    <RootNamespace>Termin.Server</RootNamespace>
+  </PropertyGroup>
+
+</Project>

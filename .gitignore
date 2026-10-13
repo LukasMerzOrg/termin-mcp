@@ -1,0 +1,12 @@
+bin/
+obj/
+*.user
+.vs/
+.idea/
+*.db
+*.db-shm
+*.db-wal
+data/
+TestResults/
+termin.yaml
+.env

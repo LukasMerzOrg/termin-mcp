@@ -1,0 +1,49 @@
+# Termin behind Caddy with automatic HTTPS.
+#   1. Point a DNS name (e.g. termin.example.com) at this host; ports 80 and 443 must be reachable.
+#   2. mkdir -p secrets && docker run --rm ghcr.io/lukasmerzorg/termin gen-key > secrets/termin_secret_key
+#      printf '%s' 'a long admin password' > secrets/termin_admin_password
+#   3. Edit TERMIN_PUBLIC_URL and the Caddyfile hostname, then: docker compose up -d
+#   4. Open https://termin.example.com/setup, add a CalDAV account, then add
+#      https://termin.example.com/mcp as a custom connector in claude.ai.
+services:
+  termin:
+    image: ghcr.io/lukasmerzorg/termin:latest
+    build: ..
+    restart: unless-stopped
+    environment:
+      TERMIN_PUBLIC_URL: https://termin.example.com
+      TERMIN_DEFAULT_TZ: Europe/Zurich
+      TERMIN_SECRET_KEY_FILE: /run/secrets/termin_secret_key
+      TERMIN_ADMIN_PASSWORD_FILE: /run/secrets/termin_admin_password
+      # TERMIN_METRICS: "1"
+    volumes:
+      - termin-data:/data
+      # Optional: accounts as code instead of the setup page.
+      # - ./termin.yaml:/data/termin.yaml:ro
+    secrets:
+      - termin_secret_key
+      - termin_admin_password
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - termin
+
+volumes:
+  termin-data:
+  caddy-data:
+  caddy-config:
+
+secrets:
+  termin_secret_key:
+    file: ./secrets/termin_secret_key
+  termin_admin_password:
+    file: ./secrets/termin_admin_password

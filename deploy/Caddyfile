@@ -1,0 +1,10 @@
+termin.example.com {
+	encode zstd gzip
+	# /metrics is internal; scrape it from the Docker network instead.
+	@metrics path /metrics
+	respond @metrics 404
+	reverse_proxy termin:8080 {
+		# MCP responses can stream (SSE); do not buffer them.
+		flush_interval -1
+	}
+}

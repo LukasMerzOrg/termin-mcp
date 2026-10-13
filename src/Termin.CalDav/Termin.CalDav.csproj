@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Termin.Calendar\Termin.Calendar.csproj" />
+  </ItemGroup>
+
+</Project>

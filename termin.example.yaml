@@ -1,0 +1,23 @@
+# Copy to /data/termin.yaml (or set TERMIN_CONFIG). Accounts here are read-only
+# on the setup page; accounts added on the setup page are stored encrypted in SQLite.
+default_timezone: Europe/Zurich
+
+accounts:
+  - label: family              # used as `account` in tool calls
+    url: https://cloud.example.com/remote.php/dav
+    username: lukas
+    secret_env: NEXTCLOUD_APP_PASSWORD   # or secret_file: /run/secrets/nextcloud, or secret: "…"
+    provider: nextcloud        # auto | generic | nextcloud | radicale | baikal | fastmail | icloud
+    default: true
+
+  - label: work
+    url: https://caldav.fastmail.com/
+    username: lukas@fastmail.com
+    secret_file: /run/secrets/fastmail
+    provider: fastmail
+
+  - label: icloud
+    url: https://caldav.icloud.com/
+    username: lukas@icloud.com
+    secret_env: ICLOUD_APP_PASSWORD      # app-specific password from appleid.apple.com
+    provider: icloud
