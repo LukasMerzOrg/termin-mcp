@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+  Unraid Docker template for Termin.
+  Copy to /boot/config/plugins/dockerMan/templates-user/my-termin.xml, then
+  Docker → Add Container → Template: termin. See docs/unraid.md.
+-->
+<Container version="2">
+  <Name>termin</Name>
+  <Repository>ghcr.io/lukasmerzorg/termin:latest</Repository>
+  <Registry>https://github.com/LukasMerzOrg/termin-mcp/pkgs/container/termin</Registry>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/LukasMerzOrg/termin-mcp/issues</Support>
+  <Project>https://github.com/LukasMerzOrg/termin-mcp</Project>
+  <Overview>Remote CalDAV MCP server for Claude (claude.ai, Desktop, Code). Streamable HTTP with built-in OAuth 2.1. Needs a public HTTPS URL through your reverse proxy or a tunnel.</Overview>
+  <Category>Productivity: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:8080]/setup</WebUI>
+  <!-- appdata is owned by nobody:users; the image's default user cannot write it. -->
+  <ExtraParams>--user 99:100</ExtraParams>
+  <Config Name="WebUI port" Target="8080" Default="8080" Mode="tcp" Description="HTTP port. Your reverse proxy terminates TLS and forwards here." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Data" Target="/data" Default="/mnt/user/appdata/termin" Mode="rw" Description="SQLite database, Data Protection keys, optional termin.yaml." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/termin</Config>
+  <Config Name="Public URL" Target="TERMIN_PUBLIC_URL" Default="" Mode="" Description="Public HTTPS URL without a trailing slash, e.g. https://termin.merz.tools. Must match what you enter in claude.ai." Type="Variable" Display="always" Required="true" Mask="false">https://termin.merz.tools</Config>
+  <Config Name="Secret key" Target="TERMIN_SECRET_KEY" Default="" Mode="" Description="Base64 32-byte key that encrypts CalDAV passwords. Generate with: openssl rand -base64 32. Changing it makes stored accounts unreadable." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Admin password" Target="TERMIN_ADMIN_PASSWORD" Default="" Mode="" Description="Password for /setup and the OAuth consent page." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Default timezone" Target="TERMIN_DEFAULT_TZ" Default="Europe/Zurich" Mode="" Description="IANA timezone used for new events and floating times." Type="Variable" Display="always" Required="false" Mask="false">Europe/Zurich</Config>
+  <Config Name="Static token" Target="TERMIN_STATIC_TOKEN" Default="" Mode="" Description="Optional fixed bearer token for Claude Code and scripts. Leave empty for OAuth only." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Metrics" Target="TERMIN_METRICS" Default="" Mode="" Description="Set to 1 to expose Prometheus metrics on /metrics. Block it at the proxy." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+</Container>

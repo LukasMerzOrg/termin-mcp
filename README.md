@@ -47,7 +47,7 @@ docker compose up -d
 2. In claude.ai, go to **Settings → Connectors → Add custom connector** and enter `https://termin.example.com/mcp`.
 3. Claude opens Termin's consent page. Enter the admin password and choose whether to allow write access.
 
-Provider notes are in [docs/providers.md](docs/providers.md). The connector setup for every Claude client is in [docs/claude-connector.md](docs/claude-connector.md).
+Provider notes are in [docs/providers.md](docs/providers.md). The connector setup for every Claude client is in [docs/claude-connector.md](docs/claude-connector.md). For Unraid (with SWAG), see [docs/unraid.md](docs/unraid.md).
 
 Until a release tag is pushed, there is no published image on GHCR. Run `docker compose build` (the compose file has `build: ..`) or `docker build -t termin .`.
 
