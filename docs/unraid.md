@@ -34,7 +34,9 @@ Check the container log for a line like `Now listening on: http://[::]:8080`.
 
 ## 3. Public HTTPS with SWAG
 
-1. **Network**: in the Termin container settings, set *Network Type* to the custom network SWAG uses (for example `proxynet`). Name resolution by container name only works on a custom network. You can then remove the port mapping, because only SWAG talks to Termin.
+1. **Network**: pick one of two setups.
+   - **Default `bridge` network** (Unraid's default, and what SWAG often runs on): container names don't resolve there. In the proxy config, set `$upstream_app` to your Unraid LAN IP and `$upstream_port` to the host port mapped for Termin, for example `192.168.1.10` and `9090`. Copy the IP from your other proxy confs, because a typo makes requests hang until Cloudflare returns 524.
+   - **Shared custom network** (for example `proxynet`): put Termin on the same network as SWAG and keep `termin` / `8080` in the config. You can then remove the port mapping.
 2. **Proxy conf**: copy [deploy/unraid/termin.subdomain.conf](../deploy/unraid/termin.subdomain.conf) to `/mnt/user/appdata/swag/nginx/proxy-confs/termin.subdomain.conf`.
 3. **Certificate**: the SWAG certificate has to cover `termin.merz.tools`.
    - If SWAG's `URL` is `merz.tools`: add `termin` to `SUBDOMAINS`, or nothing at all if you use `SUBDOMAINS=wildcard`.
@@ -95,5 +97,7 @@ See [claude-connector.md](claude-connector.md#troubleshooting). Unraid-specific 
 | Container stops right away with `SQLite Error 14` or `access denied` on `/data` | Missing `--user 99:100`, or the appdata folder belongs to root. Fix it with `chown -R 99:100 /mnt/user/appdata/termin`. |
 | `TERMIN_PUBLIC_URL must be https` | You entered `http://`. Use the public HTTPS URL, not the LAN address. |
 | Consent page loads but login loops | The proxy doesn't send `X-Forwarded-Proto: https`, so the secure cookie is dropped. |
-| SWAG returns 502 | Termin isn't on SWAG's custom network, or the container isn't named `termin`. |
+| SWAG returns 502 | The upstream name doesn't resolve. On the default `bridge` network, use the LAN IP and host port instead of `termin`. |
+| Cloudflare 524 (timeout) | The upstream IP or port in the proxy conf is wrong. Test with `docker exec <swag> curl http://<ip>:<port>/healthz`. |
+| `/setup` over `http://<ip>:<port>` returns 500 | Expected: `/setup` needs HTTPS for its secure cookies. Use the public URL; for LAN checks use `/healthz`. |
 | `unauthorized` when pulling the image | The GHCR package is private. Make it public or run `docker login ghcr.io`. |

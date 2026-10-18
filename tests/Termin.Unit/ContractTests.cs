@@ -212,6 +212,27 @@ public sealed class ContractTests : IClassFixture<ContractTests.Server>
         Assert.Equal(HttpStatusCode.OK, ready.StatusCode); // no accounts: DB only
     }
 
+    [Fact]
+    public async Task Setup_label_pattern_accepts_valid_labels()
+    {
+        var http = Client();
+        var login = await http.GetStringAsync("/setup");
+        var form = Regex.Matches(login, "<input type=\"hidden\" name=\"([^\"]+)\" value=\"([^\"]*)\">")
+            .ToDictionary(m => m.Groups[1].Value, m => System.Net.WebUtility.HtmlDecode(m.Groups[2].Value));
+        form["password"] = Password;
+        await http.PostAsync("/setup/login", new FormUrlEncodedContent(form));
+
+        var page = await http.GetStringAsync("/setup");
+        var pattern = System.Net.WebUtility.HtmlDecode(Regex.Match(page, "id=\"label\"[^>]*pattern=\"([^\"]*)\"").Groups[1].Value);
+
+        // Browsers anchor the pattern attribute as ^(?:pattern)$.
+        var browser = new Regex($"^(?:{pattern})$");
+        Assert.Matches(browser, "nextcloud");
+        Assert.Matches(browser, "family_2-x");
+        Assert.DoesNotMatch(browser, "Nextcloud Lukas");
+        Assert.DoesNotMatch(browser, new string('a', 33));
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private static async Task<string> RegisterAsync(HttpClient http)

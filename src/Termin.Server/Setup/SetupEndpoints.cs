@@ -19,6 +19,11 @@ public static class SetupEndpoints
 {
     public const string Scheme = "termin-setup";
 
+    // Shared by the HTML pattern attribute (browsers compile it with the v flag, so "-" stays escaped)
+    // and the server-side check.
+    private const string LabelPattern = @"[A-Za-z0-9_\-]{1,32}";
+    private const string LabelRule = "Letters, digits, - and _ only (max 32), e.g. nextcloud";
+
     public static void MapSetup(this WebApplication app)
     {
         app.MapGet("/", () => Results.Redirect("/setup"));
@@ -101,7 +106,7 @@ public static class SetupEndpoints
               <h2>Add account</h2>
               <form method="post" action="/setup/accounts">{csrf}
                 <label for="label">Label</label>
-                <input id="label" type="text" name="label" placeholder="family" required pattern="[A-Za-z0-9_\-]{1,32}">
+                <input id="label" type="text" name="label" placeholder="family" required pattern="{LabelPattern}" title="{LabelRule}">
                 <label for="url">CalDAV URL</label>
                 <input id="url" type="url" name="url" placeholder="https://cloud.example.com/remote.php/dav" required>
                 <label for="username">Username</label>
@@ -167,7 +172,7 @@ public static class SetupEndpoints
         var isDefault = form["default"] == "on";
 
         IResult Fail(string message) => Dashboard(ctx, options, accounts, audit, oauth, af, err: message);
-        if (!System.Text.RegularExpressions.Regex.IsMatch(label, "^[A-Za-z0-9_-]{1,32}$")) return Fail("The label may contain letters, digits, - and _ (max 32).");
+        if (!System.Text.RegularExpressions.Regex.IsMatch(label, $"^{LabelPattern}$")) return Fail(LabelRule + ".");
         if (!Uri.TryCreate(url, UriKind.Absolute, out var baseUrl) || baseUrl.Scheme is not ("https" or "http")) return Fail("The URL is not valid.");
         if (username.Length == 0 || secret.Length == 0) return Fail("Username and password are required.");
         if (accounts.All.Any(a => a.Account.Label.Equals(label, StringComparison.OrdinalIgnoreCase) && a.Source == "config"))
