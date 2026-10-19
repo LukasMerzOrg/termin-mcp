@@ -49,7 +49,7 @@ docker compose up -d
 
 Provider notes are in [docs/providers.md](docs/providers.md). The connector setup for every Claude client is in [docs/claude-connector.md](docs/claude-connector.md). For Unraid (with SWAG), see [docs/unraid.md](docs/unraid.md).
 
-Until a release tag is pushed, there is no published image on GHCR. Run `docker compose build` (the compose file has `build: ..`) or `docker build -t termin .`.
+The image is published on GHCR as `ghcr.io/lukasmerzorg/termin` (`latest` plus version tags such as `0.1.1`) whenever a `v*` tag is pushed. Pushes to `main` build the image but don't publish it. To build it yourself, run `docker compose build` (the compose file has `build: ..`) or `docker build -t termin .`.
 
 ## Tools
 
@@ -112,6 +112,7 @@ Secrets and the public URL come from environment variables. Every secret also ac
 | `TERMIN_ADMIN_PASSWORD` / `TERMIN_ADMIN_PASSWORD_HASH` | — | Admin password for the consent page and `/setup`. The hash is Argon2id; create one with `termin hash-password`. |
 | `TERMIN_DEFAULT_TZ` | `TZ`, else `UTC` | Default IANA timezone, e.g. `Europe/Zurich`. |
 | `TERMIN_DATA_DIR` | `/data` | Location of the SQLite database, Data Protection keys and an optional `termin.yaml`. |
+| `TERMIN_DB` | `<data>/termin.db` | Path of the SQLite database file. |
 | `TERMIN_CONFIG` | `<data>/termin.yaml` | Accounts as code (see [termin.example.yaml](termin.example.yaml)). |
 | `TERMIN_STATIC_TOKEN` | — | Optional fixed bearer token with full scope, for Claude Code, scripts and tests. |
 | `TERMIN_REDIRECT_HOSTS` | — | Extra allowed OAuth redirect hosts (HTTPS). claude.ai, claude.com and loopback are always allowed. |
@@ -125,7 +126,7 @@ The scopes are `calendar.read` and `calendar.write`. If the user unticks write a
 
 ## Security
 
-- **TLS**: the reverse proxy terminates TLS. Termin refuses a non-HTTPS public URL unless `TERMIN_DEV=1` is set.
+- **TLS**: the reverse proxy terminates TLS. Termin refuses a non-HTTPS public URL unless `TERMIN_DEV=1` is set. Cookies are `Secure`, so `/setup` and the consent page only work through the public HTTPS URL (they return 500 over plain `http://<lan-ip>:8080`); use `/healthz` for LAN checks.
 - **Tokens**: tokens are opaque and stored only as SHA-256 hashes. Access tokens last 1 hour and refresh tokens 30 days. Refresh tokens rotate, and reusing an old refresh token revokes its whole family. Tokens are bound to the `/mcp` resource (RFC 8707).
 - **Client registration**: dynamic client registration only accepts redirect URIs on claude.ai, claude.com and loopback, plus `TERMIN_REDIRECT_HOSTS`.
 - **DNS rebinding**: Termin validates the `Origin` header on `/mcp`.
@@ -159,8 +160,8 @@ src/Termin.Storage/       SQLite, secret encryption, OAuth state, audit
 tests/Termin.Unit/        calendar edge cases, storage, OAuth + MCP contract
 tests/Termin.Integration/ Testcontainers: Radicale, Baïkal, Nextcloud
 tests/fixtures/           anonymized provider .ics
-deploy/                   docker-compose.yml + Caddyfile
-docs/                     provider setup, claude.ai connector guide
+deploy/                   docker-compose.yml + Caddyfile; unraid/: Unraid template + SWAG proxy conf
+docs/                     provider setup, claude.ai connector guide, Unraid guide
 ```
 
 The stack is .NET 9 and ASP.NET Core with the official MCP C# SDK (`ModelContextProtocol.AspNetCore`), a hand-written CalDAV client on `HttpClient`, Ical.Net for parsing and expansion, and `Microsoft.Data.Sqlite`.
@@ -172,7 +173,7 @@ The stack is .NET 9 and ASP.NET Core with the official MCP C# SDK (`ModelContext
 | v0.1 read-only tools, discovery, static bearer token, Radicale/Baïkal/Nextcloud in CI | done |
 | v0.2 writes with ETags, recurrence scopes, VTODO tools, iCloud and Fastmail profiles | done (iCloud and Fastmail profiles still need the manual release check) |
 | v0.3 built-in OAuth 2.1 + DCR, works as a claude.ai custom connector | done |
-| v1.0 setup page, multi-account, metrics, docs, Docker image | done except the GHCR release and the MCP registry listing |
+| v1.0 setup page, multi-account, metrics, docs, Docker image (GHCR), Unraid template | done except the MCP registry listing |
 | v1.1 Google via OAuth, optional OIDC login delegation (`TERMIN_OIDC_ISSUER`) | not started |
 
 ## License
